@@ -50,8 +50,8 @@ hash:9f3a1c9e0b… AND NOT page.domain:exemple.com
 ### Install
 
 ```bash
-git clone https://github.com/redsecurityfr/-WaybackPivot.git
-cd -WaybackPivot
+git clone https://github.com/redsecurityfr/WaybackPivot.git
+cd WaybackPivot
 ```
 
 ### Usage
@@ -109,8 +109,8 @@ SHA256 is computed from the latest Wayback capture, up to 1.5 MB. A capture that
 Python 3.9+, aucune dépendance.
 
 ```bash
-git clone https://github.com/redsecurityfr/-WaybackPivot.git
-cd -WaybackPivot
+git clone https://github.com/redsecurityfr/WaybackPivot.git
+cd WaybackPivot
 python web.py
 python wayback_pivot.py exemple.com --top 40
 python wayback_pivot.py exemple.com --format json > pivots.json
