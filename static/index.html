@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wayback pivot</title>
+<link rel="icon" href="/favicon.jpg" type="image/jpeg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --red: #e10600; --muted: #8d8d8d; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { min-height: 100%; background: #000; color: #f3f3f3;
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif; }
+  body { display: flex; min-height: 100vh; }
+  .rail {
+    width: 92px; flex-shrink: 0; border-right: 1px solid #141414;
+    display: flex; flex-direction: column; align-items: center; padding: 12px 8px;
+    gap: 10px;
+  }
+  a.osint { display: block; line-height: 0; }
+  a.osint img { width: 76px; height: auto; display: block; }
+  a.osint:hover { filter: brightness(1.08); }
+  a.roso {
+    width: 36px; height: 36px; border-radius: 50%; background: var(--red);
+    box-shadow: 0 0 22px rgba(225, 6, 0, 0.45);
+    display: block;
+  }
+  a.roso:hover { filter: brightness(1.08); }
+  a.discord {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: block; overflow: hidden;
+  }
+  a.discord:hover { filter: brightness(1.08); }
+  a.discord img { width: 36px; height: 36px; display: block; object-fit: cover; }
+  .main { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 56px 18px 80px; }
+  .flow {
+    display: flex; align-items: center; gap: 14px; margin-bottom: 22px;
+  }
+  .flow img.wayback {
+    width: 64px; height: 64px; object-fit: contain; border-radius: 50%;
+    background: #fff; padding: 10px; border: 0;
+  }
+  .flow img.scan {
+    width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+    background: #111; border: 1px solid #2a2a2a;
+  }
+  .flow .arrow { color: #8d8d8d; display: grid; place-items: center; }
+  h1 {
+    font-size: clamp(22px, 3.2vw, 30px); font-weight: 500; letter-spacing: -0.03em;
+    text-align: center; margin-bottom: 8px;
+  }
+  .sub { color: var(--muted); font-size: 13.5px; text-align: center; margin-bottom: 22px; max-width: 520px; line-height: 1.45; }
+  .search-wrap { width: min(760px, 100%); }
+  form.search {
+    display: flex; align-items: center; gap: 8px;
+    background: #141414; border: 1px solid #262626; border-radius: 999px;
+    padding: 6px 6px 6px 18px;
+    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+  form.search:focus-within { border-color: #3a3a3a; }
+  form.search input[type="text"] {
+    flex: 1; border: 0; outline: 0; background: transparent; color: #fff;
+    font-size: 15.5px; min-width: 0; height: 42px;
+  }
+  form.search input::placeholder { color: #5c5c5c; }
+  button.go {
+    width: 40px; height: 40px; border: 1px solid #393940; border-radius: 50%;
+    background: linear-gradient(180deg, rgba(32,32,36,.96), rgba(17,17,20,.96));
+    color: #ececf0; cursor: pointer; display: grid; place-items: center; flex-shrink: 0;
+    box-shadow: inset 0 1px rgba(255,255,255,.08);
+    backdrop-filter: blur(16px);
+  }
+  button.go:disabled { opacity: .45; cursor: wait; }
+  button.go:hover:not(:disabled) { border-color: #49494f; color: #fff; }
+  .opts {
+    display: flex; flex-wrap: nowrap; gap: 4px; margin-top: 14px; align-items: center;
+    padding: 8px 10px;
+    background: linear-gradient(180deg, rgba(32,32,36,.96), rgba(17,17,20,.96));
+    border: 1px solid #393940;
+    border-radius: 16px;
+    box-shadow: 0 12px 38px rgba(0,0,0,.5), inset 0 1px rgba(255,255,255,.03);
+    backdrop-filter: blur(16px);
+  }
+  .chip, .num {
+    background: transparent; border: 1px solid transparent; color: #ceced6; border-radius: 9px;
+    font-size: 12px; padding: 8px 8px; font-family: inherit;
+  }
+  .chip { cursor: pointer; user-select: none; }
+  .chip:hover, .chip.on { background: rgba(255,255,255,.045); color: #fff; border-color: #49494f; }
+  .langs {
+    position: fixed; top: 14px; right: 16px; z-index: 20;
+    display: flex; gap: 8px;
+  }
+  .langs button {
+    width: 58px; height: 42px; padding: 0; border-radius: 3px; cursor: pointer;
+    border: 0; background: transparent; overflow: hidden;
+    box-shadow: 0 10px 24px rgba(0,0,0,.55);
+    outline: 1px solid rgba(255,255,255,.12);
+    outline-offset: 0;
+  }
+  .langs button.on { outline: 1px solid rgba(255,255,255,.85); }
+  .langs img { width: 58px; height: 42px; display: block; object-fit: cover; }
+  .load {
+    margin-top: 14px; height: 4px; border-radius: 999px; background: #1c1c1c; overflow: hidden;
+    opacity: 0; transition: opacity .2s ease;
+  }
+  .load.on { opacity: 1; }
+  .load-bar {
+    height: 100%; width: 0; border-radius: inherit;
+    background: linear-gradient(90deg, #8d0400, #e10600 55%, #ff4d47);
+    box-shadow: 0 0 14px rgba(225, 6, 0, .75);
+    transition: width .35s ease;
+  }
+  .num { width: 52px; color: #eee; padding: 8px 6px; }
+  .num.wide { width: 68px; }
+  label.field { display: flex; align-items: center; gap: 4px; color: #8d8d8d; font-size: 12px; white-space: nowrap; }
+  .status {
+    margin-top: 18px; min-height: 20px; font-size: 13px; color: #bdbdbd; font-variant-numeric: tabular-nums;
+  }
+  .status.err { color: #ff6b64; }
+  .results { width: min(760px, 100%); margin-top: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .card {
+    background: rgba(20,20,23,.97); border: 1px solid #36363d; border-radius: 15px;
+    padding: 14px 14px 12px; backdrop-filter: blur(16px);
+    box-shadow: 0 12px 40px rgba(0,0,0,.35);
+  }
+  .card head, .top { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .name { font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 13.5px; word-break: break-all; }
+  .meta { color: #8d8d8d; font-size: 12px; white-space: nowrap; }
+  .dork {
+    margin-top: 10px; font-family: "JetBrains Mono", ui-monospace, monospace; font-size: 12px;
+    color: #d7d7d7; background: #0a0a0a; border: 1px solid #1c1c1c; border-radius: 8px; padding: 8px 10px;
+    word-break: break-all;
+  }
+  .sha-label { margin-top: 12px; font-size: 9px; letter-spacing: 1.7px; color: #71717b; }
+  .actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .actions a, .actions button {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: transparent; border: 1px solid transparent; color: #ceced6; border-radius: 9px;
+    padding: 10px 12px; font-size: 12px; text-decoration: none; cursor: pointer; font-family: inherit;
+    white-space: nowrap;
+  }
+  .actions a:hover, .actions button:hover, .actions a.primary {
+    background: rgba(255,255,255,.045); color: #fff; border-color: #49494f;
+  }
+  .actions img.mark {
+    width: 14px; height: 14px; border-radius: 50%; object-fit: cover; display: block;
+  }
+  .actions button.copy { padding: 8px; color: #ceced6; }
+  .actions button.copy svg { width: 15px; height: 15px; display: block; }
+  .actions a.primary { color: #ff9690; }
+  .sample { margin-top: 8px; color: #6f6f6f; font-size: 11.5px; word-break: break-all; }
+  .empty { color: #8d8d8d; font-size: 13px; text-align: center; padding: 12px; }
+</style>
+</head>
+<body>
+<aside class="rail">
+  <a class="roso" href="https://roso.info/" target="_blank" rel="noopener" title="roso.info" aria-label="Ouvrir roso.info"></a>
+  <a class="discord" href="https://discord.gg/jca8yzJXc" target="_blank" rel="noopener" title="Discord" aria-label="Ouvrir le Discord">
+    <img src="/discord.webp" alt="" width="36" height="36">
+  </a>
+  <a class="osint" href="https://osint.paris/" target="_blank" rel="noopener" title="osint.paris" aria-label="Ouvrir osint.paris">
+    <img src="/logo-osint.webp" alt="osint.paris" width="76">
+  </a>
+</aside>
+<div class="langs">
+  <button type="button" data-lang="fr" class="on" aria-label="Français" title="Français">
+    <img src="/fr.svg" alt="" width="46" height="32">
+  </button>
+  <button type="button" data-lang="en" aria-label="English" title="English">
+    <img src="/gb.svg" alt="" width="46" height="32">
+  </button>
+</div>
+<main class="main">
+  <div class="flow" aria-hidden="true">
+    <img class="wayback" src="/wayback.png" alt="Wayback Machine" width="64" height="64">
+    <span class="arrow">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h14M13 6l6 6-6 6"/></svg>
+    </span>
+    <img class="scan" src="/urlscan.png" alt="urlscan.io" width="64" height="64">
+  </div>
+  <div class="search-wrap">
+    <form class="search" id="form">
+      <input id="domain" type="text" data-i18n-ph="placeholder" placeholder="exemple.com" autocomplete="off" spellcheck="false" required>
+      <button class="go" id="go" type="submit" aria-label="Lancer">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </button>
+    </form>
+    <div class="opts">
+      <button type="button" class="chip on" id="sub" data-on="1" data-i18n="sub">Sous-domaines</button>
+      <button type="button" class="chip on" id="ex" data-on="1" data-i18n="exclude">Exclure le domaine</button>
+      <button type="button" class="chip" id="all" data-on="0" data-i18n="all">Tous les fichiers</button>
+      <label class="field"><span data-i18n="top">Top</span> <input class="num" id="top" type="number" min="1" max="500" value="40"></label>
+      <label class="field"><span data-i18n="limit">URLs</span> <input class="num wide" id="limit" type="number" min="50" max="50000" value="5000"></label>
+
+    </div>
+    <div class="load" id="load" aria-hidden="true"><div class="load-bar" id="load-bar"></div></div>
+    <div class="status" id="status"></div>
+  </div>
+  <section class="results" id="results"></section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const I18N = {
+  fr: {
+    placeholder: "exemple.com",
+    sub: "Sous-domaines",
+    exclude: "Exclure le domaine",
+    all: "Tous les fichiers",
+    top: "Top",
+    limit: "URLs",
+    connecting: "Connexion à la Wayback Machine…",
+    empty: "Aucun nom de fichier exploitable dans cette fenêtre Wayback.",
+    capture: "capture",
+    captures: "captures",
+    missing: "indisponible pour cette capture",
+    file: "Nom de fichier",
+    copyDork: "Copier le dork",
+    copySha: "Copier le SHA256",
+    copied: "Copié",
+    fail: "Échec",
+  },
+  en: {
+    placeholder: "example.com",
+    sub: "Subdomains",
+    exclude: "Exclude domain",
+    all: "All files",
+    top: "Top",
+    limit: "URLs",
+    connecting: "Connecting to the Wayback Machine…",
+    empty: "No usable filename in this Wayback window.",
+    capture: "capture",
+    captures: "captures",
+    missing: "unavailable for this capture",
+    file: "Filename",
+    copyDork: "Copy dork",
+    copySha: "Copy SHA256",
+    copied: "Copied",
+    fail: "Failed",
+  },
+};
+let lang = localStorage.getItem("wayback-lang") === "en" ? "en" : "fr";
+let lastResult = null;
+function t(key) { return I18N[lang][key]; }
+function applyLang() {
+  document.documentElement.lang = lang;
+  document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-ph]").forEach((el) => { el.placeholder = t(el.dataset.i18nPh); });
+  document.querySelectorAll(".langs button").forEach((btn) => btn.classList.toggle("on", btn.dataset.lang === lang));
+  if (lastResult) render(lastResult);
+}
+document.querySelectorAll(".langs button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    lang = btn.dataset.lang;
+    localStorage.setItem("wayback-lang", lang);
+    applyLang();
+  });
+});
+for (const id of ["sub", "ex", "all"]) {
+  $(id).addEventListener("click", () => {
+    const on = $(id).dataset.on !== "1";
+    $(id).dataset.on = on ? "1" : "0";
+    $(id).classList.toggle("on", on);
+  });
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+const COPY_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 12.5 9.5 17 19 7"/></svg>';
+async function copyText(text, btn) {
+  await navigator.clipboard.writeText(text);
+  btn.innerHTML = CHECK_ICON;
+  setTimeout(() => { btn.innerHTML = COPY_ICON; }, 900);
+}
+
+function render(data) {
+  const box = $("results");
+  if (!data.pivots.length) {
+    box.innerHTML = `<p class="empty">${esc(t("empty"))}</p>`;
+    return;
+  }
+  box.innerHTML = data.pivots.map((p) => `
+    <article class="card">
+      <div class="top">
+        <div class="name">${esc(p.filename)}</div>
+        <div class="meta">score ${p.score} · ${p.count} ${p.count > 1 ? t("captures") : t("capture")}</div>
+      </div>
+      <div class="dork">${esc(p.dork)}</div>
+      <div class="sha-label">SHA256</div>
+      <div class="dork">${p.sha256 ? esc(p.sha256) : esc(t("missing"))}</div>
+      <div class="actions">
+        <a class="primary" href="${esc(p.urlscan)}" target="_blank" rel="noopener"><img class="mark" src="/urlscan.png" alt="">${esc(t("file"))}</a>
+        ${p.hash_url ? `<a href="${esc(p.hash_url)}" target="_blank" rel="noopener"><img class="mark" src="/urlscan.png" alt="">SHA256</a>` : ""}
+        <button type="button" class="copy" data-copy="${esc(p.dork)}" title="${esc(t("copyDork"))}" aria-label="${esc(t("copyDork"))}">${COPY_ICON}</button>
+        ${p.sha256 ? `<button type="button" class="copy" data-copy="${esc(p.sha256)}" title="${esc(t("copySha"))}" aria-label="${esc(t("copySha"))}">${COPY_ICON}</button>` : ""}
+      </div>
+      ${p.samples[0] ? `<div class="sample">${esc(p.samples[0])}</div>` : ""}
+    </article>
+  `).join("");
+  box.querySelectorAll("[data-copy]").forEach((btn) => {
+    btn.addEventListener("click", () => copyText(btn.dataset.copy, btn));
+  });
+}
+
+$("form").addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const domain = $("domain").value.trim();
+  if (!domain) return;
+  $("go").disabled = true;
+  $("status").className = "status";
+  $("status").textContent = t("connecting");
+  $("results").innerHTML = "";
+  $("load").classList.add("on");
+  $("load-bar").style.width = "8%";
+  const cap = Number($("limit").value || 5000);
+  try {
+    const start = await fetch("/api/scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        domain,
+        match: $("sub").dataset.on === "1" ? "domain" : "host",
+        keep_domain: $("ex").dataset.on !== "1",
+        all: $("all").dataset.on === "1",
+        top: Number($("top").value || 40),
+        limit: Number($("limit").value || 5000),
+        lang,
+      }),
+    });
+    const started = await start.json();
+    if (!start.ok) throw new Error(started.error || t("fail"));
+    for (;;) {
+      await new Promise((r) => setTimeout(r, 700));
+      const res = await fetch("/api/jobs/" + started.id);
+      const job = await res.json();
+      $("status").textContent = job.message || "";
+      const msg = job.message || "";
+      const sha = msg.match(/SHA256\s+(\d+)\s*\/\s*(\d+)/);
+      const urls = msg.match(/(\d+)\s+URLs?/i);
+      if (sha) $("load-bar").style.width = (55 + (45 * Number(sha[1]) / Math.max(1, Number(sha[2])))).toFixed(0) + "%";
+      else if (urls) $("load-bar").style.width = Math.max(12, Math.min(55, (Number(urls[1]) / cap) * 55)).toFixed(0) + "%";
+      else $("load-bar").style.width = "12%";
+      if (job.status === "done") {
+        lastResult = job.result;
+        render(job.result);
+        $("status").textContent = job.result.domain + " · " + job.message;
+        $("load-bar").style.width = "100%";
+        break;
+      }
+      if (job.status === "error") throw new Error(job.message || "Erreur");
+    }
+  } catch (err) {
+    $("status").className = "status err";
+    $("status").textContent = err.message || String(err);
+  } finally {
+    $("go").disabled = false;
+    setTimeout(() => {
+      $("load").classList.remove("on");
+      $("load-bar").style.width = "0";
+    }, 450);
+  }
+});
+applyLang();
+</script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Wayback Machine">
+  <circle cx="32" cy="32" r="30" fill="#111" stroke="#e8e8e8" stroke-width="2"/>
+  <path fill="#f4f4f4" d="M14 26.5 32 14l18 12.5v2.2H14z"/>
+  <rect x="16" y="46.5" width="32" height="3.2" rx=".4" fill="#f4f4f4"/>
+  <rect x="17.2" y="29.2" width="3.1" height="17.3" fill="#f4f4f4"/>
+  <rect x="23.4" y="29.2" width="3.1" height="17.3" fill="#f4f4f4"/>
+  <rect x="29.45" y="29.2" width="3.1" height="17.3" fill="#f4f4f4"/>
+  <rect x="35.5" y="29.2" width="3.1" height="17.3" fill="#f4f4f4"/>
+  <rect x="41.6" y="29.2" width="3.1" height="17.3" fill="#f4f4f4"/>
+  <rect x="47.7" y="29.2" width="3.1" height="17.3" fill="#f4f4f4"/>
+</svg>
